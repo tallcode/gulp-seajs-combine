@@ -5,19 +5,18 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/teamrun/gulp-seajs.git"
+    "url": "https://github.com/thinkbest/gulp-seajs.git"
   },
   "dependencies": {
-    "event-stream": "3.0.2",
-    "should": "~3.3.0"
+    "event-stream": "3.0.2"
   },
   "keywords": [
-    "gulpplugin",
+    "gulp",
     "seajs"
   ],
   "author": {
-    "name": "chenllos"
+    "name": "thinkbest"
   },
   "license": "MIT",
-  "homepage": "https://github.com/teamrun/gulp-seajs"
+  "homepage": "https://github.com/thinkbest/gulp-seajs"
 }
