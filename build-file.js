@@ -86,7 +86,7 @@ function buildSeajsFile(param, srcPath, id, code) {
 				// 递归处理: 读code 取依赖, 检测, 构建模块
 				// console.log( 'gonna read file ' + depItem + ',   its id is ' + subID );
 				// TODO 放开注释...
-				if(param.except.indexOf(x)<0){
+				if((!param.except) || (param.except.indexOf(x)<0)){
 					buildSeajsFile(param, depItem + '.js', subID);
 				}
 			}
