@@ -10,6 +10,7 @@ var parseCode = (function(){
 		var _callback;
 		var scan = function(obj){
 			if(isObject(obj)){
+				//返回require
 				if(obj.type==='CallExpression' && obj.callee && obj.callee.name==='require' && obj.arguments && obj.arguments.length && obj.arguments.length === 1 && obj.arguments[0].type==='Literal'){
 					_callback({
 						type:'require',
@@ -21,19 +22,31 @@ var parseCode = (function(){
 					});
 				}
 				if(obj.type==='CallExpression' && obj.callee && obj.callee.name==='define' && obj.arguments && obj.arguments.length && obj.arguments.length <= 2 ){
-					if(obj.arguments.length === 1 && obj.arguments[0].type === 'FunctionExpression'){
+					/* 补全SeaJS的define参数 */
+					if(obj.arguments.length === 1 && (obj.arguments[0].type === 'FunctionExpression'||obj.arguments[0].type === 'ObjectExpression')){
+						obj.arguments.unshift({
+							type: 'ArrayExpression',
+							elements: []
+						});
 						obj.arguments.unshift({
 							type: 'Literal',
 							value: ''
 						});
 					}
-					if(obj.arguments.length === 2 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'FunctionExpression'){
+					if(obj.arguments.length === 2 && obj.arguments[0].type === 'ArrayExpression' && (obj.arguments[1].type === 'FunctionExpression'||obj.arguments[1].type === 'ObjectExpression')){
+						obj.arguments.unshift({
+							type: 'Literal',
+							value: ''
+						});
+					}
+					if(obj.arguments.length === 2 && obj.arguments[0].type === 'Literal' && (obj.arguments[1].type === 'FunctionExpression'||obj.arguments[1].type === 'ObjectExpression')){
 						obj.arguments.splice(1, 0, {
 							type: 'ArrayExpression',
 							elements: []
 						});
 					}
-					if(obj.arguments.length === 3 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'ArrayExpression' && obj.arguments[2].type === 'FunctionExpression'){
+					//返回define
+					if(obj.arguments.length === 3 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'ArrayExpression' && (obj.arguments[2].type === 'FunctionExpression'||obj.arguments[2].type === 'ObjectExpression')){
 						_callback({
 							type:'define',
 							key:obj.arguments[0].value,
@@ -77,7 +90,7 @@ var parseCode = (function(){
 		var AST = esprima.parse(code);
 		scanAST(AST, function(result){
 			if(result.type === 'define' && result.key === ''){
-				result.key = '.'
+				result.key = '__NO_ID__'
 			}
 			MAP[result.type][result.key] = result.value;
 		});

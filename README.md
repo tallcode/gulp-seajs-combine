@@ -12,7 +12,7 @@ gulp-seajs-combine is a plugin of gulp to build seajs modules.
     
     gulp.task("seajs", function(){
         return gulp.src(['./src/**/homepage/index.js'])
-            .pipe(seajs('page/index',{
+            .pipe(seajs(null, {
                 base: '../../mods/',
                 alias: {
                     zepto: 'zepto/core'
@@ -29,7 +29,7 @@ gulp-seajs-combine is a plugin of gulp to build seajs modules.
     
     gulp.task("seajs", function(){
         return gulp.src(['./src/mods/zepto/index.js'],{base:'./src'})
-            .pipe(seajs('zepto/index',{
+            .pipe(seajs('zepto/index', {
                 base: '../../mods/',
                 alias: {
                     zepto: 'zepto/core'

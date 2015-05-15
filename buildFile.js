@@ -41,15 +41,25 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 		//分析代码依赖
 		function(fileOpt, globalOpt, code, callback){
 			var parsedCode = parseCode(code);
-			if(!parsedCode.define[fileOpt.id]) {
-				parsedCode.define['.'].setId(fileOpt.id);
-				parsedCode.define[fileOpt.id] = parsedCode.define['.'];
+			//代码入口（匹配的ID，或者匿名），找不到就直接返回
+			if(!((fileOpt.id && parsedCode.define[fileOpt.id])||parsedCode.define['__NO_ID__'])){
+				callback(true, null);
 			}
-			callback(false, fileOpt, globalOpt, parsedCode);
+			else {
+				if (fileOpt.id && !parsedCode.define[fileOpt.id]) {
+					parsedCode.define['__NO_ID__'].setId(fileOpt.id);
+					parsedCode.define[fileOpt.id] = parsedCode.define['__NO_ID__'];
+				}
+				callback(false, fileOpt, globalOpt, parsedCode);
+			}
 		},
 		function(fileOpt, globalOpt, parsedCode, callback){
 			var keys = Object.keys(parsedCode.require);
 			async.each(keys, function(key, callback){
+				//不处理http开头的依赖
+				if(/^https?:\/\//.test(key)) {
+					callback(false);
+				}
 				var depId = key;
 				//处理别名
 				if (globalOpt.param.alias && globalOpt.param.alias[depId]) {
@@ -62,20 +72,24 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 				//处理ID相对路径
 				var depResolvedId;
 				if (/^\./.test(depId)) {
-					depResolvedId = decodeURIComponent(url.resolve(fileOpt.id, depId));
+					depResolvedId = decodeURIComponent(url.resolve(fileOpt.id||'', depId));
+					if(!fileOpt.id || /^\./.test(fileOpt.id)){
+						depResolvedId = './' + depResolvedId;
+					}
 				}
 				else {
 					depResolvedId = depId;
 				}
 				//把require添加到define中
-				parsedCode.define[fileOpt.id].appendDep(depResolvedId);
+				parsedCode.define[fileOpt.id||'__NO_ID__'].appendDep(depResolvedId);
 				//与define中的名称保持一致
 				//console.log(fileOpt.id+','+key+','+depId);
 				parsedCode.require[key].setValue(depResolvedId);
 				//分析依赖文件路径
 				var depFilePath = depId;
 				//处理base
-				if (globalOpt.param.base && !/^\./.test(depFilePath) && !(/^page/.test(depFilePath))) {
+				//原始ID是相对路径或者http的，不加base
+				if (globalOpt.param.base && !/^\./.test(key)) {
 					depFilePath = path.join(globalOpt.param.base, depFilePath);
 				}
 				//处理文件相对路径
@@ -88,7 +102,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 						//排除列表
 						buildSeajsFile({
 							id:depResolvedId,
-							src:depFilePath + '.js',
+							src:depFilePath + '.js'
 						},globalOpt, function() {
 							callback(false);
 						});
@@ -123,7 +137,6 @@ module.exports = function (param, src, id, callback) {
 		dep:D,
 		param:param||{}
 	}, function(){
-		//var code = fillRequire(D.getMap(), D.getCode());
 		var code = D.getCode();
 		callback(code);
 	});
