@@ -8,7 +8,11 @@
     "url": "https://github.com/thinkbest/gulp-seajs.git"
   },
   "dependencies": {
-    "event-stream": "3.0.2"
+    "event-stream": "~3.0.2",
+    "esprima":"~2.2.0",
+    "escodegen":"~1.6.1",
+    "async":"~0.9.0",
+    "graceful-fs":"*"
   },
   "keywords": [
     "gulpplugin",
