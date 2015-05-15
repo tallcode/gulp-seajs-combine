@@ -1,11 +1,11 @@
 {
   "name": "gulp-seajs-combine",
-  "version": "0.2.0",
-  "description": "seajs builder for gulp",
+  "version": "0.2.1",
+  "description": "seajs combiner for gulp",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thinkbest/gulp-seajs.git"
+    "url": "https://github.com/thinkbest/gulp-seajs-combine.git"
   },
   "dependencies": {
     "event-stream": "~3.0.2",
@@ -23,5 +23,5 @@
     "name": "thinkbest"
   },
   "license": "MIT",
-  "homepage": "https://github.com/thinkbest/gulp-seajs"
+  "homepage": "https://github.com/thinkbest/gulp-seajs-combine"
 }

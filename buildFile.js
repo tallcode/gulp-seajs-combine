@@ -57,7 +57,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 			var keys = Object.keys(parsedCode.require);
 			async.each(keys, function(key, callback){
 				//不处理http开头的依赖
-				if(/^https?:\/\//.test(key)) {
+				if(/^https?:\/\//.test(key) || /^\/\//.test(key)) {
 					callback(false);
 				}
 				var depId = key;
