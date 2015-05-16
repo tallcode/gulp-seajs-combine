@@ -1,6 +1,6 @@
 {
   "name": "gulp-seajs-combine",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "plugin of gulp to build seajs modules",
   "main": "index.js",
   "repository": {
