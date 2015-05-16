@@ -1,7 +1,7 @@
 {
   "name": "gulp-seajs-combine",
-  "version": "0.2.1",
-  "description": "seajs combiner for gulp",
+  "version": "0.3.0",
+  "description": "gulp-seajs-combine is a plugin of gulp forked form gulp-seajs to build seajs modules",
   "main": "index.js",
   "repository": {
     "type": "git",
