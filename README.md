@@ -1,6 +1,7 @@
 #gulp-seajs-combine
 
-gulp-seajs-combine is a plugin of gulp to build seajs modules.
+gulp-seajs-combine is a plugin of gulp forked from [gulp-seajs](https://github.com/teamrun/gulp-seajs) to build seajs modules.
+
 
 ### Install
     
