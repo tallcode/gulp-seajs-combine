@@ -3,7 +3,6 @@ var path = require('path');
 var url = require('url');
 var async = require('async');
 var parseCode = require('./parseCode');
-var escodegen = require('escodegen');
 
 var DEP = function(){
 	var requried = {};
@@ -116,7 +115,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 				}
 			}, function(err){
 				//console.log(fileOpt.id);
-				var code = escodegen.generate(parsedCode.AST);
+				var code = parsedCode.generate();
 				//console.log(code.substr(0,200));
 				globalOpt.dep.addCode(code);
 				callback(err);
@@ -126,7 +125,6 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 		callback(false);
 	});
 };
-
 
 module.exports = function (param, src, id, callback) {
 	var D = DEP();
@@ -141,4 +139,3 @@ module.exports = function (param, src, id, callback) {
 		callback(code);
 	});
 };
-

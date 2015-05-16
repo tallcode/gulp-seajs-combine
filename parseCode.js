@@ -1,4 +1,5 @@
 var esprima = require('esprima');
+var escodegen = require('escodegen');
 var util = require('util');
 
 var parseCode = (function(){
@@ -95,9 +96,11 @@ var parseCode = (function(){
 			MAP[result.type][result.key] = result.value;
 		});
 		return {
-			AST:AST,
 			require:MAP['require'],
-			define:MAP['define']
+			define:MAP['define'],
+			generate:function(){
+				return escodegen.generate(AST);
+			}
 		}
 	};
 })();
