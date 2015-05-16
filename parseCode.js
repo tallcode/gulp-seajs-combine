@@ -11,7 +11,7 @@ var parseCode = (function(){
 		var _callback;
 		var scan = function(obj){
 			if(isObject(obj)){
-				//返回require
+				//杩斿洖require
 				if(obj.type==='CallExpression' && obj.callee && obj.callee.name==='require' && obj.arguments && obj.arguments.length && obj.arguments.length === 1 && obj.arguments[0].type==='Literal'){
 					_callback({
 						type:'require',
@@ -23,7 +23,7 @@ var parseCode = (function(){
 					});
 				}
 				if(obj.type==='CallExpression' && obj.callee && obj.callee.name==='define' && obj.arguments && obj.arguments.length && obj.arguments.length <= 2 ){
-					/* 补全SeaJS的define参数 */
+					/* 琛ュ叏SeaJS鐨刣efine鍙傛暟 */
 					if(obj.arguments.length === 1 && (obj.arguments[0].type === 'FunctionExpression'||obj.arguments[0].type === 'ObjectExpression')){
 						obj.arguments.unshift({
 							type: 'ArrayExpression',
@@ -46,7 +46,7 @@ var parseCode = (function(){
 							elements: []
 						});
 					}
-					//返回define
+					//杩斿洖define
 					if(obj.arguments.length === 3 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'ArrayExpression' && (obj.arguments[2].type === 'FunctionExpression'||obj.arguments[2].type === 'ObjectExpression')){
 						_callback({
 							type:'define',
