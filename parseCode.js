@@ -46,7 +46,7 @@ var parseCode = (function(){
 	var requireToMap = function(array){
 		var result = {};
 		foreach(array, function(i, obj){
-			result[obj.key] = obj;
+			result[obj.key.get()] = obj;
 		});
 		return result;
 	};
@@ -65,8 +65,14 @@ var parseCode = (function(){
 			if(isObject(obj)){
 				//扫描到require
 				if(obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'require' && checkArray(obj.arguments) === 1 && obj.arguments[0].type === 'Literal'){
+					var key = obj.arguments[0].value;
 					result.push({
-						key: obj.arguments[0].value,
+						//只读
+						key: {
+							get: function(){
+								return key;
+							}
+						},
 						value: {
 							get: function(){
 								return obj.arguments[0].value;
@@ -150,8 +156,14 @@ var parseCode = (function(){
 								};
 							});
 						}
+						var key = obj.arguments[0].value;
 						result.push({
-							key: obj.arguments[0].value,
+							//只读
+							key: {
+								get: function(){
+									return key;
+								}
+							},
 							id: {
 								get: function(){
 									return obj.arguments[0].value;
@@ -180,7 +192,7 @@ var parseCode = (function(){
 	};
 	//扫描语法树就是先开始扫描define
 	var scanAST = function(AST){
-		scanDefine(AST);
+		return scanDefine(AST);
 	};
 
 	return function(code){

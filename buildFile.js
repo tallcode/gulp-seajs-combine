@@ -42,7 +42,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 			var parsedCode = parseCode(code);
 			async.each(parsedCode.define, function(d, callback){
 				//如果传入了ID，则覆盖匿名
-				if(d.key === '' && fileOpt.id){
+				if(d.key.get() === '' && fileOpt.id){
 					d.id.set(fileOpt.id);
 				}
 				//下面开始遍历依赖
@@ -51,10 +51,10 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					var r = d.require[key];
 					//---处理依赖ID名称START---
 					//不处理http开头的依赖ID
-					if(/^https?:\/\//.test(r.key) || /^\/\//.test(r.key)){
+					if(/^https?:\/\//.test(key) || /^\/\//.test(key)){
 						callback(false);
 					}
-					var depId = r.key;
+					var depId = key;
 					//处理别名
 					if(globalOpt.param.alias && globalOpt.param.alias[depId]){
 						depId = globalOpt.param.alias[depId];
@@ -84,7 +84,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					var depFilePath = depId;
 					//处理base
 					//原始ID是相对路径或者http的，不加base
-					if(globalOpt.param.base && !/^\./.test(r.key)){
+					if(globalOpt.param.base && !/^\./.test(key)){
 						depFilePath = path.join(globalOpt.param.base, depFilePath);
 					}
 					//处理文件相对路径
