@@ -4,76 +4,76 @@ var url = require('url');
 var async = require('async');
 var parseCode = require('./parseCode');
 
-var DEP = function () {
+var DEP = function(){
 	var requried = {};
 	var code = [];
 
 	return {
-		isRequried: function (dep) {
+		isRequried: function(dep){
 			return !!requried[dep];
 		},
-		addRequrie: function (dep) {
+		addRequrie: function(dep){
 			requried[dep] = true;
 		},
-		addCode: function (text) {
+		addCode: function(text){
 			code.push(text);
 		},
-		getCode: function () {
+		getCode: function(){
 			return code.join('\n');
 		}
 	};
 };
 
-var buildSeajsFile = function (fileOpt, globalOpt, callback) {
+var buildSeajsFile = function(fileOpt, globalOpt, callback){
 	async.waterfall([
 		//读取代码
-		function (callback) {
-			fs.readFile(fileOpt.src, {encoding: 'utf-8'}, function (err, code) {
-				if (!err) {
+		function(callback){
+			fs.readFile(fileOpt.src, {encoding: 'utf-8'}, function(err, code){
+				if(!err){
 					callback(false, fileOpt, globalOpt, code);
 				}
-				else {
+				else{
 					callback(err, null);
 				}
 			});
 		},
 		//分析代码依赖
-		function (fileOpt, globalOpt, code, callback) {
+		function(fileOpt, globalOpt, code, callback){
 			var parsedCode = parseCode(code);
-			async.each(parsedCode.define, function (d, callback) {
+			async.each(parsedCode.define, function(d, callback){
 				//如果传入了ID，则覆盖匿名
-				if (d.key === '' && fileOpt.id) {
+				if(d.key === '' && fileOpt.id){
 					d.id.set(fileOpt.id);
 				}
 				//下面开始遍历依赖
 				var keys = Object.keys(d.require);
-				async.each(keys, function (key, callback) {
+				async.each(keys, function(key, callback){
 					var r = d.require[key];
 					//---处理依赖ID名称START---
 					//不处理http开头的依赖ID
-					if (/^https?:\/\//.test(r.key) || /^\/\//.test(r.key)) {
+					if(/^https?:\/\//.test(r.key) || /^\/\//.test(r.key)){
 						callback(false);
 					}
 					var depId = r.key;
 					//处理别名
-					if (globalOpt.param.alias && globalOpt.param.alias[depId]) {
+					if(globalOpt.param.alias && globalOpt.param.alias[depId]){
 						depId = globalOpt.param.alias[depId];
 					}
 					/*去掉JS后缀*/
-					if (path.extname(depId) === '.js') {
+					if(path.extname(depId) === '.js'){
 						depId = depId.substring(0, depId.lastIndexOf('.js'));
 					}
 					//处理ID相对路径
 					var depResolvedId;
 					//如果依赖项ID以.开头，则需要处理成绝对路径
-					if (/^\./.test(depId)) {
+					if(/^\./.test(depId)){
 						depResolvedId = decodeURIComponent(url.resolve(fileOpt.id || '', depId));
 						//但是如果父ID本身就是相对路径，那么依赖项ID还是相对路径
-						if (!fileOpt.id || /^\./.test(fileOpt.id)) {
+						if(!fileOpt.id || /^\./.test(fileOpt.id)){
 							depResolvedId = './' + depResolvedId;
 						}
 					}
-					else {
+					else{
 						depResolvedId = depId;
 					}
 					//修改依赖项名称
@@ -84,37 +84,37 @@ var buildSeajsFile = function (fileOpt, globalOpt, callback) {
 					var depFilePath = depId;
 					//处理base
 					//原始ID是相对路径或者http的，不加base
-					if (globalOpt.param.base && !/^\./.test(r.key)) {
+					if(globalOpt.param.base && !/^\./.test(r.key)){
 						depFilePath = path.join(globalOpt.param.base, depFilePath);
 					}
 					//处理文件相对路径
 					depFilePath = path.resolve(path.dirname(fileOpt.src), depFilePath);
 					//---处理依赖路径END---
 					//递归处理后续依赖
-					if (!globalOpt.dep.isRequried(depResolvedId)) {
+					if(!globalOpt.dep.isRequried(depResolvedId)){
 						globalOpt.dep.addRequrie(depResolvedId);
 						//带有{}的路径,里面填充的是seajs.config.vars,这是运行时依赖.不通过这个来解析路径, 保留即可
-						if (!/\{[^/]+}/.test(depFilePath) && !((globalOpt.param.except) && (globalOpt.param.except.indexOf(depId) >= 0))) {
+						if(!/\{[^/]+}/.test(depFilePath) && !((globalOpt.param.except) && (globalOpt.param.except.indexOf(depId) >= 0))){
 							//递归处理: 读code 取依赖, 检测, 构建模块
 							//排除列表
 							buildSeajsFile({
 								id: depResolvedId,
 								src: depFilePath + '.js'
-							}, globalOpt, function () {
+							}, globalOpt, function(){
 								callback(false);
 							});
 						}
-						else {
+						else{
 							callback(false);
 						}
 					}
-					else {
+					else{
 						callback(false);
 					}
-				}, function (err) {
+				}, function(err){
 					callback(err);
 				});
-			}, function (err) {
+			}, function(err){
 				//当前文件的各项依赖都处理完毕后，生成新代码，插入代码列表
 				//console.log(fileOpt.id);
 				var code = parsedCode.generate();
@@ -123,12 +123,12 @@ var buildSeajsFile = function (fileOpt, globalOpt, callback) {
 				callback(err);
 			});
 		}
-	], function () {
+	], function(){
 		callback(false);
 	});
 };
 
-module.exports = function (param, src, id, callback) {
+module.exports = function(param, src, id, callback){
 	var D = DEP();
 	buildSeajsFile({
 		id: id,
@@ -136,7 +136,7 @@ module.exports = function (param, src, id, callback) {
 	}, {
 		dep: D,
 		param: param || {}
-	}, function () {
+	}, function(){
 		var code = D.getCode();
 		callback(code);
 	});

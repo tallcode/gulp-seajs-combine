@@ -2,83 +2,83 @@ var esprima = require('esprima');
 var escodegen = require('escodegen');
 var util = require('util');
 
-var parseCode = (function () {
+var parseCode = (function(){
 	var isArray = util.isArray;
-	var isObject = function (obj) {
+	var isObject = function(obj){
 		return obj !== null && {}.toString.call(obj) === '[object Object]';
 	};
-	var foreach = function (obj, callback) {
-		if (isArray(obj)) {
-			for (var i = 0; i < obj.length; i++) {
+	var foreach = function(obj, callback){
+		if(isArray(obj)){
+			for(var i = 0; i < obj.length; i++){
 				callback(i, obj[i]);
 			}
 		}
-		else if (isObject(obj)) {
-			for (var k in obj) {
-				if (obj.hasOwnProperty(k)) {
+		else if(isObject(obj)){
+			for(var k in obj){
+				if(obj.hasOwnProperty(k)){
 					callback(k, obj[k]);
 				}
 			}
 		}
 	};
 	//检查数组有效
-	var checkArray = function (obj) {
-		if (obj && isArray(obj)) {
+	var checkArray = function(obj){
+		if(obj && isArray(obj)){
 			return obj.length;
 		}
-		else {
+		else{
 			return 0;
 		}
 	};
 	//检查define工厂是不是函数
-	var isDefineFactoryFunction = function (expression) {
+	var isDefineFactoryFunction = function(expression){
 		return (expression.type === 'FunctionExpression' && checkArray(expression.params) && expression.params[0].name === 'require' && expression.body);
 	};
 	//检查define工厂是不是对象
-	var isDefineFactoryObject = function (expression) {
+	var isDefineFactoryObject = function(expression){
 		return (expression.type === 'ObjectExpression');
 	};
 	//检查define工厂有效
-	var isDefineFactory = function (expression) {
+	var isDefineFactory = function(expression){
 		return isDefineFactoryFunction(expression) || isDefineFactoryObject(expression);
 	};
 	//转换require数组为map
-	var requireToMap = function (array) {
+	var requireToMap = function(array){
 		var result = {};
-		foreach(array, function (i, obj) {
+		foreach(array, function(i, obj){
 			result[obj.key] = obj;
 		});
 		return result;
 	};
 	//转换依赖数组内容为普通字符串
-	var depToArray = function (deps) {
+	var depToArray = function(deps){
 		var result = [];
-		foreach(deps, function (i, value) {
+		foreach(deps, function(i, value){
 			result.push(value.value);
 		});
 		return result;
 	};
 	//扫描全部依赖
-	var scanRequire = function (obj) {
+	var scanRequire = function(obj){
 		var result = [];
-		var scan = function (obj) {
-			if (isObject(obj)) {
+		var scan = function(obj){
+			if(isObject(obj)){
 				//扫描到require
-				if (obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'require' && checkArray(obj.arguments) === 1 && obj.arguments[0].type === 'Literal') {
+				if(obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'require' && checkArray(obj.arguments) === 1 && obj.arguments[0].type === 'Literal'){
 					result.push({
 						key: obj.arguments[0].value,
 						value: {
-							get: function () {
+							get: function(){
 								return obj.arguments[0].value;
 							},
-							set: function (value) {
+							set: function(value){
 								obj.arguments[0].value = value;
 							}
 						}
 					});
 				}
 			}
-			foreach(obj, function (key, value) {
+			foreach(obj, function(key, value){
 				scan(value);
 			});
 			return obj
@@ -87,14 +87,14 @@ var parseCode = (function () {
 		return result;
 	};
 	//扫描define
-	var scanDefine = function (obj) {
+	var scanDefine = function(obj){
 		var result = [];
-		var scan = function (obj) {
+		var scan = function(obj){
 			//扫描到define
-			if (isObject(obj)) {
-				if (obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'define' && obj.arguments && obj.arguments.length && obj.arguments.length <= 2) {
+			if(isObject(obj)){
+				if(obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'define' && obj.arguments && obj.arguments.length && obj.arguments.length <= 2){
 					//补全SeaJS的define参数
-					if (checkArray(obj.arguments) === 1 && isDefineFactory(obj.arguments[0])) {
+					if(checkArray(obj.arguments) === 1 && isDefineFactory(obj.arguments[0])){
 						obj.arguments.unshift({
 							type: 'ArrayExpression',
 							elements: []
@@ -104,27 +104,27 @@ var parseCode = (function () {
 							value: ''
 						});
 					}
-					if (checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'ArrayExpression' && isDefineFactory(obj.arguments[1])) {
+					if(checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'ArrayExpression' && isDefineFactory(obj.arguments[1])){
 						obj.arguments.unshift({
 							type: 'Literal',
 							value: ''
 						});
 					}
-					if (checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'Literal' && isDefineFactory(obj.arguments[1])) {
+					if(checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'Literal' && isDefineFactory(obj.arguments[1])){
 						obj.arguments.splice(1, 0, {
 							type: 'ArrayExpression',
 							elements: []
 						});
 					}
 					//返回define
-					if (checkArray(obj.arguments) === 3 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'ArrayExpression' && isDefineFactory(obj.arguments[2])) {
+					if(checkArray(obj.arguments) === 3 && obj.arguments[0].type === 'Literal' && obj.arguments[1].type === 'ArrayExpression' && isDefineFactory(obj.arguments[2])){
 						var require = {};
 						//如果工厂是函数，继续扫描里面的require
-						if (isDefineFactoryFunction(obj.arguments[2])) {
+						if(isDefineFactoryFunction(obj.arguments[2])){
 							//扫描require，并转化为map，去重
 							require = requireToMap(scanRequire(obj.arguments[2]));
 							//生成插入依赖的方法
-							var append = function (depId) {
+							var append = function(depId){
 								var dep = {
 									type: 'Literal',
 									value: depId + ''
@@ -133,18 +133,18 @@ var parseCode = (function () {
 								//返回修改插入对象的方法
 								return {
 									value: {
-										set: function (value) {
+										set: function(value){
 											obj.value = value;
 										}
 									}
 								}
 							};
 							//遍历添加依赖，并绑定依赖名，在修改require名称的同时，也修改define中的名称
-							foreach(require, function (key, obj) {
+							foreach(require, function(key, obj){
 								var dep = append(obj.value.get());
 								var objValueSet = obj.value.set;
 								var depValueSet = dep.value.set;
-								obj.value.set = function (value) {
+								obj.value.set = function(value){
 									objValueSet(value);
 									depValueSet(value);
 								};
@@ -153,15 +153,15 @@ var parseCode = (function () {
 						result.push({
 							key: obj.arguments[0].value,
 							id: {
-								get: function () {
+								get: function(){
 									return obj.arguments[0].value;
 								},
-								set: function (value) {
+								set: function(value){
 									obj.arguments[0].value = value;
 								}
 							},
 							dep: {
-								get: function () {
+								get: function(){
 									return depToArray(obj.arguments[1].elements);
 								}
 							},
@@ -170,7 +170,7 @@ var parseCode = (function () {
 					}
 				}
 			}
-			foreach(obj, function (key, value) {
+			foreach(obj, function(key, value){
 				scan(value);
 			});
 			return obj;
@@ -179,16 +179,16 @@ var parseCode = (function () {
 		return result;
 	};
 	//扫描语法树就是先开始扫描define
-	var scanAST = function (AST) {
+	var scanAST = function(AST){
 		scanDefine(AST);
 	};
 
-	return function (code) {
+	return function(code){
 		//生成语法树
 		var AST = esprima.parse(code);
 		return {
 			define: scanAST(AST),
-			generate: function () {
+			generate: function(){
 				return escodegen.generate(AST);
 			}
 		}
