@@ -11,25 +11,34 @@ gulp-seajs-combine is a plugin of gulp forked from [gulp-seajs](https://github.c
 
     var seajs = require('gulp-seajs-combine');
     
+    seajs(mainId, options);
+    
+###Options
+   - base
+   - alias
+   - except: the modules that do not combine
+    
+###Example
+
     gulp.task('seajs', function(){
-        return gulp.src(['./src/page/homepage/index.js'],{base:'./src'})
+        return gulp.src(['./src/page/homepage/index.js'], {base: './src'})
             .pipe(seajs(null, {
                 base: '../../mods/',
                 alias: {
                     zepto: 'zepto/core'
                 },
-                except:[
+                except: [
                     'zepto/index'
                 ]
             }))
             .pipe(uglify({
-                mangle: {except:['require']}
+                mangle: {except: ['require']}
             }))
             .pipe(gulp.dest('./build'));
     });
     
     gulp.task('seajs', function(){
-        return gulp.src(['./src/mods/zepto/index.js'],{base:'./src'})
+        return gulp.src(['./src/mods/zepto/index.js'], {base: './src'})
             .pipe(seajs('zepto/index', {
                 base: '../../mods/',
                 alias: {
@@ -37,7 +46,7 @@ gulp-seajs-combine is a plugin of gulp forked from [gulp-seajs](https://github.c
                 }
             }))
             .pipe(uglify({
-                mangle: {except:['require']}
+                mangle: {except: ['require']}
             }))
             .pipe(gulp.dest('./build'));
     });
