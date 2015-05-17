@@ -42,14 +42,6 @@ var parseCode = (function(){
 	var isDefineFactory = function(expression){
 		return isDefineFactoryFunction(expression) || isDefineFactoryObject(expression);
 	};
-	//转换require数组为map
-	var requireToMap = function(array){
-		var result = {};
-		foreach(array, function(i, obj){
-			result[obj.key.get()] = obj;
-		});
-		return result;
-	};
 	//转换依赖数组内容为普通字符串
 	var depToArray = function(deps){
 		var result = [];
@@ -61,27 +53,32 @@ var parseCode = (function(){
 	//扫描全部依赖
 	var scanRequire = function(obj){
 		var result = [];
+		var keys = {};
 		var scan = function(obj){
 			if(isObject(obj)){
 				//扫描到require
 				if(obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'require' && checkArray(obj.arguments) === 1 && obj.arguments[0].type === 'Literal'){
 					var key = obj.arguments[0].value;
-					result.push({
-						//只读
-						key: {
-							get: function(){
-								return key;
-							}
-						},
-						value: {
-							get: function(){
-								return obj.arguments[0].value;
+					//去重
+					if(key && (!keys[key])){
+						keys[key] = true;
+						result.push({
+							//只读
+							key: {
+								get: function(){
+									return key;
+								}
 							},
-							set: function(value){
-								obj.arguments[0].value = value;
+							value: {
+								get: function(){
+									return obj.arguments[0].value;
+								},
+								set: function(value){
+									obj.arguments[0].value = value;
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			}
 			foreach(obj, function(key, value){
@@ -127,8 +124,8 @@ var parseCode = (function(){
 						var require = {};
 						//如果工厂是函数，继续扫描里面的require
 						if(isDefineFactoryFunction(obj.arguments[2])){
-							//扫描require，并转化为map，去重
-							require = requireToMap(scanRequire(obj.arguments[2]));
+							//扫描require
+							require = scanRequire(obj.arguments[2]);
 							//生成插入依赖的方法
 							var append = function(depId){
 								var dep = {
@@ -146,7 +143,7 @@ var parseCode = (function(){
 								}
 							};
 							//遍历添加依赖，并绑定依赖名，在修改require名称的同时，也修改define中的名称
-							foreach(require, function(key, obj){
+							foreach(require, function(i, obj){
 								var dep = append(obj.value.get());
 								var objValueSet = obj.value.set;
 								var depValueSet = dep.value.set;

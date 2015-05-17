@@ -46,9 +46,8 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					d.id.set(fileOpt.id);
 				}
 				//下面开始遍历依赖
-				var keys = Object.keys(d.require);
-				async.each(keys, function(key, callback){
-					var r = d.require[key];
+				async.each(d.require, function(r, callback){
+					var key = r.key.get();
 					//---处理依赖ID名称START---
 					//不处理http开头的依赖ID
 					if(/^https?:\/\//.test(key) || /^\/\//.test(key)){
