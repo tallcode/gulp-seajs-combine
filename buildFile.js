@@ -58,10 +58,8 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					if(globalOpt.param.alias && globalOpt.param.alias[depId]){
 						depId = globalOpt.param.alias[depId];
 					}
-					/*去掉JS后缀*/
-					if(path.extname(depId) === '.js'){
-						depId = depId.substring(0, depId.lastIndexOf('.js'));
-					}
+					//去掉JS后缀
+					depId = depId.replace(/\.js$/, '');
 					//处理ID相对路径
 					var depResolvedId;
 					//如果依赖项ID以.开头，则需要处理成绝对路径

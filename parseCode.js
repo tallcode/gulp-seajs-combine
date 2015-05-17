@@ -42,7 +42,7 @@ var parseCode = (function(){
 	var isDefineFactory = function(expression){
 		return isDefineFactoryFunction(expression) || isDefineFactoryObject(expression);
 	};
-	//转换依赖数组内容为普通字符串
+	//转换依赖数组语法结构内容为普通字符串数组
 	var depToArray = function(deps){
 		var result = [];
 		foreach(deps, function(i, value){
@@ -97,6 +97,7 @@ var parseCode = (function(){
 			if(isObject(obj)){
 				if(obj.type === 'CallExpression' && obj.callee && obj.callee.name === 'define' && obj.arguments && obj.arguments.length && obj.arguments.length <= 2){
 					//补全SeaJS的define参数
+					//define(function(){});
 					if(checkArray(obj.arguments) === 1 && isDefineFactory(obj.arguments[0])){
 						obj.arguments.unshift({
 							type: 'ArrayExpression',
@@ -107,12 +108,14 @@ var parseCode = (function(){
 							value: ''
 						});
 					}
+					//define([],function(){});
 					if(checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'ArrayExpression' && isDefineFactory(obj.arguments[1])){
 						obj.arguments.unshift({
 							type: 'Literal',
 							value: ''
 						});
 					}
+					//define(id,function(){});
 					if(checkArray(obj.arguments) === 2 && obj.arguments[0].type === 'Literal' && isDefineFactory(obj.arguments[1])){
 						obj.arguments.splice(1, 0, {
 							type: 'ArrayExpression',
