@@ -140,7 +140,10 @@ var parseCode = (function(){
 								return {
 									value: {
 										set: function(value){
-											obj.value = value;
+											dep.value = value;
+										},
+										get: function(){
+											return dep.value;
 										}
 									}
 								}

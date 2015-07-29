@@ -45,6 +45,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 				if(d.key.get() === '' && fileOpt.id){
 					d.id.set(fileOpt.id);
 				}
+				var myId = d.id.get();
 				//下面开始遍历依赖
 				async.each(d.require, function(r, callback){
 					var key = r.key.get();
@@ -52,6 +53,7 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					//不处理http开头的依赖ID
 					if(/^https?:\/\//.test(key) || /^\/\//.test(key)){
 						callback(false);
+						return;
 					}
 					var depId = key;
 					//处理别名
@@ -64,9 +66,9 @@ var buildSeajsFile = function(fileOpt, globalOpt, callback){
 					var depResolvedId;
 					//如果依赖项ID以.开头，则需要处理成绝对路径
 					if(/^\./.test(depId)){
-						depResolvedId = decodeURIComponent(url.resolve(fileOpt.id || '', depId));
+						depResolvedId = decodeURIComponent(url.resolve(myId || '', depId));
 						//但是如果父ID本身就是相对路径，那么依赖项ID还是相对路径
-						if(!fileOpt.id || /^\./.test(fileOpt.id)){
+						if(!myId || /^\./.test(myId)){
 							depResolvedId = './' + depResolvedId;
 						}
 					}
